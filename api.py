@@ -46,7 +46,11 @@ async def download_video(request: DownloadRequest):
 @app.get("/video/{filename}")
 async def get_video(filename: str):
     try:
-        file_path = Path(settings.LOCAL_DOWNLOAD_DIR) / ( f"{filename}.mp4")
+
+        if not Path(filename).suffix:
+            filename = f"{filename}.mp4"
+
+        file_path = Path(settings.LOCAL_DOWNLOAD_DIR) / filename
         
         if not file_path.exists():
             raise HTTPException(status_code=404, detail="Video file not found")
