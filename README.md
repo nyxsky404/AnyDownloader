@@ -1,80 +1,90 @@
 # Video Downloader API
 
-A simple and efficient video downloader API built with FastAPI and yt-dlp.
+## 🚀 Setup
 
-## API Usage
+### Prerequisites
+- Python 3.11+
+- FFmpeg installed on your system
+- Node.js (for certain video platforms)
 
-### Download Video
+### Option 1: Local Setup
 
-#### 1. Simple Download
+1. **Clone and navigate to project**
+```bash
+cd /path/to/project
+```
+
+2. **Create virtual environment**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
+
+3. **Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+4. **Create `.env` file** (copy from below or use defaults)
+```bash
+LOCAL_DOWNLOAD_DIR=./downloads
+API_HOST=0.0.0.0
+API_PORT=8000
+```
+
+5. **Run the API**
+```bash
+python api.py
+```
+
+API will be available at: **http://localhost:8000**
+
+### Option 2: Docker Setup
+
+1. **Start the service**
+```bash
+docker-compose up -d
+```
+
+2. **Check logs**
+```bash
+docker-compose logs -f
+```
+
+3. **Stop the service**
+```bash
+docker-compose down
+```
+
+API will be available at: **http://localhost:8000**
+
+## 📖 Usage
+
+### 1. Download a Video
 ```bash
 curl -X POST http://localhost:8000/download \
   -H "Content-Type: application/json" \
   -d '{"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
 ```
 
-#### 2. Download with Custom Filename
+### 2. Retrieve Downloaded Video
 ```bash
-curl -X POST http://localhost:8000/download \
-  -H "Content-Type: application/json" \
-  -d '{"url": "VIDEO_URL", "custom_filename": "my_video"}'
+curl -O http://localhost:8000/video/video_dQw4w9WgXcQ.mp4
 ```
 
-### 3. Download Specific Video
+### 3. Access Interactive API Docs
+Open in browser: **http://localhost:8000/docs**
+
+**Note**: Downloaded videos are saved in `./downloads` folder
+
+## ⚙️ Configuration (Optional)
+
+Default `.env` settings:
 ```bash
-# Browser-friendly download URL
-curl -O http://localhost:8000/video/my_video.mp4
-
-# Or access static files directly
-curl -O http://localhost:8000/downloads/my_video.mp4
-```
-
-### Health Check
-```bash
-curl http://localhost:8000/health
-```
-
-## 🐳 Docker
-
-### 1. Build and start
-```bash
-docker-compose up -d
-```
-
-### 2. Check logs
-```bash
-docker-compose logs -f
-```
-
-### 3. Stop
-```bash
-docker-compose down
-```
-
-## 🔗 Useful Links
-
-- **API Docs**: http://localhost:8000/docs
-- **Health**: http://localhost:8000/health
-- **Downloads**: http://localhost:8000/downloads
-
-**Downloads location**: `./downloads` folder on your local machine (mapped from container)
-
-> **Note**: Make sure you have `.env` file created before running Docker!
-
-## 📋 Environment Variables
-
-Create a `.env` file with the following variables:
-
-```bash
-# Storage
 LOCAL_DOWNLOAD_DIR=./downloads
 DOWNLOAD_TIMEOUT=300
-
-# yt-dlp Settings
 YT_DLP_MAX_RETRIES=3
 YT_DLP_MAX_FILESIZE=500
-
-# API Config
 API_HOST=0.0.0.0
 API_PORT=8000
 LOG_LEVEL=INFO
