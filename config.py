@@ -29,7 +29,6 @@ class Settings(BaseSettings):
     
     @property
     def cookies_file_exists(self) -> bool:
-        self._ensure_cookies_file()
         path_str = str(self.YT_DLP_COOKIES_FILE)
         return bool(path_str) and path_str != "." and self.YT_DLP_COOKIES_FILE.exists()
     

@@ -37,7 +37,6 @@ class VideoDownloader:
         logger.info(f"Local storage: {self.download_dir}")
     
     def download(self, url: str) -> Dict:
-
         logger.info(f"Starting download for URL: {url}")
         
         try:
@@ -67,11 +66,13 @@ class VideoDownloader:
                 'max_filesize': settings.YT_DLP_MAX_FILESIZE * 1024 * 1024,
                 'logger': logger,
                 'js_runtimes': {'node': {}},
+                'sleep_interval': 5,
+                'max_sleep_interval': 15,
+                'sleep_requests': 1,
             }
             
             if settings.cookies_file_exists:
                 ydl_opts['cookiefile'] = str(settings.YT_DLP_COOKIES_FILE)
-            
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 logger.info("Extracting video/playlist info...")

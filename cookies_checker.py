@@ -41,10 +41,14 @@ def test_cookies_with_youtube(cookies_path: Path) -> tuple[bool, str]:
             return False, "Could not extract video info"
     except Exception as e:
         error_msg = str(e).lower()
-        auth_errors = ["sign in", "bot", "cookies are no longer valid", "confirm you", "not a bot"]
+        auth_errors = ["sign in", "bot", "cookies are no longer valid", "confirm you", "not a bot", "login required"]
+        transient_errors = ["page needs to be reloaded", "timeout", "connection", "network"]
+        
         if any(err in error_msg for err in auth_errors):
             return False, "Cookies rejected by YouTube"
-        return True, "YouTube accessible (non-auth error ignored)"
+        if any(err in error_msg for err in transient_errors):
+            return True, "YouTube accessible (transient error, cookies OK)"
+        return True, "YouTube accessible"
 
 
 def check_cookies(cookies_path: Path, test_with_youtube: bool = False) -> CookiesStatus:

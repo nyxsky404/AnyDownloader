@@ -1,5 +1,14 @@
 # Video Downloader API
 
+## Supported Platforms
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| YouTube | ✅ Working | Requires cookies (see below) |
+| YouTube Shorts | ✅ Working | Requires cookies |
+| Twitter/X | ✅ Working | |
+| Facebook | ✅ Working | |
+
 ## 🚀 Setup
 
 ### Prerequisites
@@ -114,19 +123,23 @@ API will be available at: **http://localhost:8000**
 
 YouTube requires authentication to avoid bot detection. You need to provide cookies from a browser logged into YouTube.
 
-### Method 1: Browser Extension (Recommended)
+### Method 1: Browser Extension + Incognito (Recommended)
 
-The "Get cookies.txt LOCALLY" extension is more reliable than yt-dlp's built-in exporter.
+The "Get cookies.txt LOCALLY" extension with incognito mode prevents cookie rotation issues.
 
 **Install the extension:**
 - [Chrome Web Store](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
 - [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/)
 
-**Export cookies:**
-1. Open YouTube in your browser and make sure you're logged in
-2. Click the extension icon in your browser toolbar
-3. Click "Export" or "Get cookies.txt"
-4. Save the file as `cookies.txt` in your project root
+**Export cookies (best practice to prevent rotation):**
+1. Open a **new private/incognito window**
+2. Log into YouTube in that window
+3. Navigate to `https://www.youtube.com/robots.txt` (keep this as the ONLY tab)
+4. Use the extension to export cookies
+5. Save as `cookies.txt` in your project root
+6. **Close the incognito window immediately** - never reopen it
+
+This method ensures cookies are never rotated since the session is never used again.
 
 ### Method 2: yt-dlp Built-in
 
@@ -146,9 +159,14 @@ yt-dlp --cookies-from-browser firefox "https://youtube.com" --print-to-file "%(c
 - This prevents cookie conflicts and protects your main account
 
 **After exporting cookies:**
-- **Don't use that browser for YouTube** - logging in/out rotates cookies
-- **Don't use that Google account elsewhere** - activity can invalidate cookies
+- **Don't use that browser/account for YouTube** - activity rotates cookies
+- **Don't reopen the incognito session** - it will invalidate cookies
 - Consider using a separate browser profile for cookie exports
+
+**Rate limits (from yt-dlp wiki):**
+- Without account: ~300 videos/hour
+- With account: ~2000 videos/hour
+- This API adds 5-15 second delays to avoid rate limiting
 
 **If cookies stop working:**
 - Cookies may be rotated by Google for security
@@ -160,6 +178,10 @@ yt-dlp --cookies-from-browser firefox "https://youtube.com" --print-to-file "%(c
 - Monitor via `/health` or `/cookies/status` endpoints
 - Regenerate when downloads fail with auth errors
 - Set a calendar reminder to refresh every 2-3 months
+
+### Reference:
+- [yt-dlp YouTube Extractors Wiki](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies)
+- [yt-dlp Known Issues](https://github.com/yt-dlp/yt-dlp/issues/3766)
 
 ## 📖 Usage
 

@@ -1,12 +1,11 @@
 import logging
 from pathlib import Path
-from typing import List
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from downloader import VideoDownloader
-from models import DownloadRequest, DownloadResponse, VideoFileInfo
+from models import DownloadRequest, DownloadResponse
 from config import settings
 from cookies_checker import check_cookies
 
