@@ -36,6 +36,12 @@ async def cookies_status():
     return status.to_dict()
 
 
+@app.get("/cookies/test")
+async def cookies_test():
+    status = check_cookies(settings.YT_DLP_COOKIES_FILE, test_with_youtube=True)
+    return status.to_dict()
+
+
 @app.post("/download", response_model=DownloadResponse)
 async def download_video(request: DownloadRequest):
     try:
