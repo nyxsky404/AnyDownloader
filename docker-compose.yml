@@ -16,3 +16,16 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
+
+  streamlit:
+    build: .
+    command: ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./downloads:/app/downloads
+    environment:
+      - API_BASE_URL=http://video-downloader:8000
+    depends_on:
+      - video-downloader
+    restart: unless-stopped

@@ -1,36 +1,9 @@
-import re
-from pydantic import BaseModel, HttpUrl, Field, field_validator
-
-PLATFORM_URL_PATTERNS = {
-    "youtube": re.compile(
-        r"^https?://(www\.)?(m\.)?"
-        r"(youtube\.com/(watch\?v=|shorts/|embed/|playlist\?list=)"
-        r"|youtu\.be/)"
-        r"[\w\-?&=.%/]+$",
-        re.IGNORECASE,
-    ),
-    "facebook": re.compile(
-        r"^https?://(www\.)?(m\.)?(facebook\.com/|fb\.watch/)[\w\-?&=.%/]+$",
-        re.IGNORECASE,
-    ),
-    "x": re.compile(
-        r"^(https?:\/\/)?(www\.|mobile\.)?(x\.com|twitter\.com)\/[A-Za-z0-9_]+\/status\/(\d+)",
-        re.IGNORECASE,
-    ),
-}
+from pydantic import BaseModel, HttpUrl, Field
 
 
 class DownloadRequest(BaseModel):
     url: HttpUrl = Field(..., description="Video URL to download")
 
-    @field_validator("url")
-    @classmethod
-    def validate_platform_url(cls, value: HttpUrl) -> HttpUrl:
-        url = str(value)
-        if not any(pattern.match(url) for pattern in PLATFORM_URL_PATTERNS.values()):
-            raise ValueError("Only YouTube, Facebook, and X URLs are supported.")
-        return value
-    
     class Config:
         json_schema_extra = {
             "example": {
