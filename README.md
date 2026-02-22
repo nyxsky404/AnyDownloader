@@ -10,7 +10,31 @@ Download videos from any platform — YouTube, YouTube Shorts, Twitter/X, Facebo
 | **FastAPI backend** | http://localhost:8000 | REST API for programmatic use |
 | **API docs** | http://localhost:8000/docs | Interactive Swagger UI |
 
-## 🚀 Quick Start (Docker — recommended)
+## ☁️ Render Deployment
+
+Render needs **two separate web services** — one for the API, one for the Streamlit UI. A `render.yaml` is included to configure both automatically.
+
+### Steps
+
+1. **Push your repo to GitHub** (already done)
+
+2. **Deploy via Render Blueprint**
+   - Go to [render.com/deploy](https://render.com) → **New** → **Blueprint**
+   - Connect your GitHub repo — Render will detect `render.yaml` and create both services
+
+3. **Set environment variables on the API service**
+   - `YT_DLP_COOKIES_CONTENT` — paste the full contents of your `cookies.txt` (for YouTube downloads)
+
+4. **Set environment variables on the UI service**
+   - `API_BASE_URL` — set to your API service URL, e.g. `https://video-downloader-api.onrender.com`
+
+5. Open the **UI service URL** (not the API one) — that's your Streamlit app
+
+> **Note:** Render free tier services spin down after inactivity. The first request may take ~30 seconds to wake up.
+
+---
+
+
 
 1. **Create a `cookies.txt` file** (required before Docker mounts it)
 ```bash
@@ -163,7 +187,8 @@ LOG_FILE=video_downloader.log
 ├── cookies_checker.py   # Cookie validation
 ├── config.py            # Settings
 ├── Dockerfile
-├── docker-compose.yml   # Spins up API + UI
+├── docker-compose.yml   # Spins up API + UI locally
+├── render.yaml          # Render two-service deployment config
 ├── requirements.txt
 ├── cookies.txt          # YouTube cookies (gitignored)
 └── downloads/           # Downloaded videos (gitignored)
