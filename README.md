@@ -1,201 +1,170 @@
-# Video Downloader API
+# Any Downloader
 
-## Supported Platforms
+Download videos from any platform — YouTube, YouTube Shorts, Twitter/X, Facebook, Instagram, TikTok, and [thousands more](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md) supported by yt-dlp.
 
-| Platform | Status | Notes |
-|----------|--------|-------|
-| YouTube | ✅ Working | Requires cookies (see below) |
-| YouTube Shorts | ✅ Working | Requires cookies |
-| Twitter/X | ✅ Working | |
-| Facebook | ✅ Working | |
+## Services
 
-## 🚀 Setup
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Streamlit UI** | http://localhost:8501 | Paste a URL, preview the video, download it |
+| **FastAPI backend** | http://localhost:8000 | REST API for programmatic use |
+| **API docs** | http://localhost:8000/docs | Interactive Swagger UI |
 
-### Prerequisites
-- Python 3.11+
-- FFmpeg installed on your system
-- Node.js (for certain video platforms)
+## 🚀 Quick Start (Docker — recommended)
 
-### Option 1: Local Setup
-
-1. **Clone and navigate to project**
+1. **Create a `cookies.txt` file** (required before Docker mounts it)
 ```bash
-cd /path/to/project
+touch cookies.txt
 ```
+> For YouTube downloads, populate this file with real cookies — see [YouTube Cookies](#-youtube-cookies) below.
 
-2. **Create virtual environment**
-```bash
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Create `.env` file** (copy from below or use defaults)
-```bash
-LOCAL_DOWNLOAD_DIR=./downloads
-API_HOST=0.0.0.0
-API_PORT=8000
-```
-
-5. **Setup YouTube cookies** (required for YouTube downloads)
-   
-   See [YouTube Cookies](#-youtube-cookies) section for detailed instructions.
-   
-   Quick start:
-   ```bash
-   # Option A: Use browser extension (recommended)
-   # Install "Get cookies.txt LOCALLY" extension, export cookies to cookies.txt
-   
-   # Option B: Use yt-dlp
-   yt-dlp --cookies-from-browser chrome "https://youtube.com" --print-to-file "%(cookies)s" cookies.txt
-   ```
-
-6. **Run the API**
-```bash
-python api.py
-```
-
-API will be available at: **http://localhost:8000**
-
-### Option 2: Docker Setup
-
-1. **Setup YouTube cookies** (required for YouTube downloads)
-   
-   See [YouTube Cookies](#-youtube-cookies) section for detailed instructions.
-   
-   ```bash
-   # Make sure cookies.txt exists before starting Docker
-   touch cookies.txt  # Create empty file first
-   # Then export cookies using extension or yt-dlp
-   ```
-
-2. **Start the service**
+2. **Start both services**
 ```bash
 docker-compose up -d
 ```
 
-3. **Check logs**
-```bash
-docker-compose logs -f
-```
+3. **Open the UI**
 
-4. **Stop the service**
+Navigate to **http://localhost:8501**, paste any video URL, and hit **Download**.
+
+4. **Stop**
 ```bash
 docker-compose down
 ```
 
-API will be available at: **http://localhost:8000**
+---
 
+## 🖥️ Streamlit UI
+
+The UI communicates with the FastAPI backend internally. Here's the flow:
+
+1. Paste any video URL into the input box
+2. Click **⬇️ Download** — the backend fetches and saves the video via yt-dlp
+3. An **inline video preview** appears once the download completes
+4. Click **💾 Save** to download the file to your machine
+5. For playlists, each video gets its own collapsible card with preview + save button
+
+---
+
+## 🚀 Local Setup (without Docker)
+
+### Prerequisites
+- Python 3.11+
+- FFmpeg (`brew install ffmpeg` / `apt install ffmpeg`)
+- Node.js 20+ (for JS-heavy platforms)
+
+```bash
+# 1. Create and activate virtualenv
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Configure environment
+cp .env.example .env  # or create .env manually
+
+# 4. Start the API
+python api.py
+
+# 5. Start the UI (separate terminal)
+streamlit run streamlit_app.py
+```
+
+---
 
 ## 🍪 YouTube Cookies
 
-YouTube requires authentication to avoid bot detection. You need to provide cookies from a browser logged into YouTube.
+YouTube requires authentication to avoid bot detection. Other platforms generally work without cookies.
 
 ### Method 1: Browser Extension + Incognito (Recommended)
 
-The "Get cookies.txt LOCALLY" extension with incognito mode prevents cookie rotation issues.
+**Install:**
+- [Chrome — Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
+- [Firefox — cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/)
 
-**Install the extension:**
-- [Chrome Web Store](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
-- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/)
-
-**Export cookies (best practice to prevent rotation):**
-1. Open a **new private/incognito window**
-2. Log into YouTube in that window
-3. Navigate to `https://www.youtube.com/robots.txt` (keep this as the ONLY tab)
-4. Use the extension to export cookies
-5. Save as `cookies.txt` in your project root
-6. **Close the incognito window immediately** - never reopen it
-
-This method ensures cookies are never rotated since the session is never used again.
+**Export (prevents cookie rotation):**
+1. Open a **new incognito/private window**
+2. Log into YouTube with a **dedicated throwaway account**
+3. Navigate to `https://www.youtube.com/robots.txt`
+4. Export cookies → save as `cookies.txt` in the project root
+5. **Close the incognito window immediately** — never reopen it
 
 ### Method 2: yt-dlp Built-in
 
 ```bash
-# Using Chrome
+# Chrome
 yt-dlp --cookies-from-browser chrome "https://youtube.com" --print-to-file "%(cookies)s" cookies.txt
 
-# Using Firefox
+# Firefox
 yt-dlp --cookies-from-browser firefox "https://youtube.com" --print-to-file "%(cookies)s" cookies.txt
 ```
 
-### ⚠️ Important Notes
+### ⚠️ Notes
 
-**Use a dedicated YouTube account:**
-- Create a separate Google account just for this service
-- Don't use your personal/main YouTube account
-- This prevents cookie conflicts and protects your main account
+- Use a **dedicated Google account**, not your personal one
+- Cookies last **3–6 months** — refresh when YouTube downloads start failing
+- Monitor status: `curl http://localhost:8000/cookies/status`
+- Rate limits: ~300/hr without cookies, ~2000/hr with
 
-**After exporting cookies:**
-- **Don't use that browser/account for YouTube** - activity rotates cookies
-- **Don't reopen the incognito session** - it will invalidate cookies
-- Consider using a separate browser profile for cookie exports
+---
 
-**Rate limits (from yt-dlp wiki):**
-- Without account: ~300 videos/hour
-- With account: ~2000 videos/hour
-- This API adds 5-15 second delays to avoid rate limiting
+## 📖 API Usage
 
-**If cookies stop working:**
-- Cookies may be rotated by Google for security
-- Re-export cookies and replace `cookies.txt`
-- Check status: `curl http://localhost:8000/cookies/status`
-
-### Cookie lifecycle:
-- Valid for **3-6 months** typically
-- Monitor via `/health` or `/cookies/status` endpoints
-- Regenerate when downloads fail with auth errors
-- Set a calendar reminder to refresh every 2-3 months
-
-### Reference:
-- [yt-dlp YouTube Extractors Wiki](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies)
-- [yt-dlp Known Issues](https://github.com/yt-dlp/yt-dlp/issues/3766)
-
-## 📖 Usage
-
-### 1. Download a Video
+### Download a video
 ```bash
 curl -X POST http://localhost:8000/download \
   -H "Content-Type: application/json" \
   -d '{"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
 ```
 
-### 2. Retrieve Downloaded Video
+### Retrieve a downloaded file
 ```bash
 curl -O http://localhost:8000/video/video_dQw4w9WgXcQ.mp4
 ```
 
-### 3. Check Service Health
+### Health check
 ```bash
 curl http://localhost:8000/health
 ```
 
-### 4. Check Cookie Status
+### Cookie status
 ```bash
 curl http://localhost:8000/cookies/status
 ```
 
-### 5. Access Interactive API Docs
-Open in browser: **http://localhost:8000/docs**
+---
 
-**Note**: Downloaded videos are saved in `./downloads` folder
+## ⚙️ Configuration
 
-## ⚙️ Configuration (Optional)
-
-Default `.env` settings:
+`.env` defaults:
 ```bash
 LOCAL_DOWNLOAD_DIR=./downloads
 DOWNLOAD_TIMEOUT=300
 YT_DLP_MAX_RETRIES=3
-YT_DLP_MAX_FILESIZE=500
+YT_DLP_MAX_FILESIZE=500        # MB
 YT_DLP_COOKIES_FILE=./cookies.txt
-YT_DLP_COOKIES_CONTENT=   # Optional: cookies content as string (for cloud deployment)
+YT_DLP_COOKIES_CONTENT=        # Optional: paste cookie content directly (for cloud deploys)
 API_HOST=0.0.0.0
 API_PORT=8000
 LOG_LEVEL=INFO
 LOG_FILE=video_downloader.log
+```
+
+---
+
+## 📁 File Structure
+
+```
+├── api.py               # FastAPI endpoints
+├── streamlit_app.py     # Streamlit UI
+├── downloader.py        # yt-dlp download logic
+├── models.py            # Pydantic request/response models
+├── cookies_checker.py   # Cookie validation
+├── config.py            # Settings
+├── Dockerfile
+├── docker-compose.yml   # Spins up API + UI
+├── requirements.txt
+├── cookies.txt          # YouTube cookies (gitignored)
+└── downloads/           # Downloaded videos (gitignored)
 ```
