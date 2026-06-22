@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
@@ -16,7 +16,7 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir --upgrade --pre "yt-dlp[default]"
+    pip install --no-cache-dir --upgrade --pre "yt-dlp[default,EJS]"
 
 COPY config.py models.py downloader.py cookies_checker.py api.py streamlit_app.py ./
 

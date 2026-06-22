@@ -1,6 +1,7 @@
 services:
-  video-downloader:
+  api:
     build: .
+    command: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
     ports:
       - "8000:8000"
     volumes:
@@ -15,17 +16,21 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 10s
 
   streamlit:
     build: .
-    command: ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    command: ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
     ports:
       - "8501:8501"
     volumes:
       - ./downloads:/app/downloads
+      - ./cookies.txt:/app/cookies.txt
     environment:
-      - API_BASE_URL=http://video-downloader:8000
+      - API_BASE_URL=http://api:8000
+      - LOCAL_DOWNLOAD_DIR=/app/downloads
+      - YT_DLP_COOKIES_FILE=/app/cookies.txt
     depends_on:
-      - video-downloader
+      api:
+        condition: service_healthy
     restart: unless-stopped
