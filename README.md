@@ -8,16 +8,16 @@
 
 | Platform | Videos | Shorts / Reels | Playlists | Live |
 |----------|--------|----------------|-----------|------|
-| **YouTube** | ✅ | ✅ Shorts | ✅ | ✅ |
-| **Instagram** | ✅ | ✅ Reels | ✅ | — |
-| **TikTok** | ✅ | ✅ | ✅ | — |
+| **YouTube** | ✅ | ✅ Shorts | ✅ | ❌ |
+| **Instagram** | ✅ | ✅ Reels | — | — |
+| **TikTok** | ✅ | ✅ | ✅ Collections | ❌ |
 | **Twitter / X** | ✅ | — | — | — |
-| **Facebook** | ✅ | ✅ Reels | ✅ | ✅ |
+| **Facebook** | ✅ | ✅ Reels | — | ❌ |
 | **Reddit** | ✅ | — | — | — |
-| **Twitch** | ✅ Clips | — | ✅ VODs | ✅ |
-| **Vimeo** | ✅ | — | ✅ | — |
+| **Twitch** | ✅ Clips + VODs | — | ✅ Collections | ❌ |
+| **Vimeo** | ✅ | — | ✅ Albums/Channels | — |
 | **Dailymotion** | ✅ | — | ✅ | — |
-| **Pinterest** | ✅ | — | — | — |
+| **Pinterest** | ✅ | — | ✅ Collections | — |
 | **LinkedIn** | ✅ | — | — | — |
 | **SoundCloud** | ✅ Audio | — | ✅ | — |
 | **1000+ more** | [Full list →](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md) | | | |
