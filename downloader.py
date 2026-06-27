@@ -64,7 +64,38 @@ class VideoDownloader:
             opts['cookiefile'] = str(settings.YT_DLP_COOKIES_FILE)
         return opts
 
-    def download(self, url: str) -> Dict:
+    def _make_progress_hook(self, log_queue=None):
+        current_file = [None]
+
+        def _emit(msg: str, level: str = "info"):
+            if level == "error":
+                logger.error(msg)
+            else:
+                logger.info(msg)
+            if log_queue is not None:
+                log_queue.put({"type": "log", "message": msg})
+
+        def hook(d):
+            status = d.get('status')
+            filename = d.get('filename', '')
+            info = d.get('info_dict', {})
+            title = info.get('title') or Path(filename).stem or 'unknown'
+            playlist_index = info.get('playlist_index')
+            playlist_count = info.get('n_entries') or info.get('playlist_count')
+
+            prefix = f"[{playlist_index}/{playlist_count}] " if playlist_index else ""
+
+            if status == 'downloading' and filename != current_file[0]:
+                current_file[0] = filename
+                _emit(f"{prefix}Download started: {title}")
+            elif status == 'finished':
+                _emit(f"{prefix}Download complete: {title}")
+            elif status == 'error':
+                _emit(f"{prefix}Download error: {title}", level="error")
+
+        return hook
+
+    def download(self, url: str, log_queue=None) -> Dict:
         logger.info(f"Starting download for URL: {url}")
 
         format_attempts = [
@@ -80,10 +111,12 @@ class VideoDownloader:
             info = None
             last_ydl = None
             last_error = None
+            progress_hook = self._make_progress_hook(log_queue)
 
             for fmt in format_attempts:
                 try:
                     ydl_opts = self._build_ydl_opts(output_path, fmt)
+                    ydl_opts['progress_hooks'] = [progress_hook]
                     ydl = yt_dlp.YoutubeDL(ydl_opts)
                     logger.info(f"Trying format: {fmt}")
                     info = ydl.extract_info(url, download=True)

@@ -1,8 +1,12 @@
+import asyncio
+import json
 import logging
+import queue
+import threading
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 
 from downloader import VideoDownloader
 from models import DownloadRequest, DownloadResponse
@@ -39,6 +43,33 @@ async def cookies_status():
 async def cookies_test():
     status = check_cookies(settings.YT_DLP_COOKIES_FILE, test_with_youtube=True)
     return status.to_dict()
+
+
+@app.post("/download/stream")
+async def download_video_stream(request: DownloadRequest):
+    log_queue: queue.Queue = queue.Queue()
+
+    def run_download():
+        try:
+            result = downloader.download(str(request.url), log_queue=log_queue)
+            log_queue.put({"type": "result", "data": result})
+        except Exception as e:
+            logger.error(f"Stream download failed: {e}", exc_info=True)
+            log_queue.put({"type": "error", "message": str(e)})
+        finally:
+            log_queue.put(None)
+
+    threading.Thread(target=run_download, daemon=True).start()
+
+    async def generate():
+        loop = asyncio.get_event_loop()
+        while True:
+            item = await loop.run_in_executor(None, log_queue.get)
+            if item is None:
+                break
+            yield f"data: {json.dumps(item)}\n\n"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 
 @app.post("/download", response_model=DownloadResponse)

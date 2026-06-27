@@ -1,3 +1,4 @@
+import json
 import os
 import requests
 import streamlit as st
@@ -80,74 +81,85 @@ def render_video_card(title: str, filename: str, download_url: str, index: int =
         st.code(f"{API_BASE_URL}{download_url}")
 
 
+def render_result(data: dict):
+    video_type = data.get("type")
+    if video_type == "playlist":
+        playlist_title = data.get("playlist_title", "Playlist")
+        filenames = data.get("filenames", [])
+        download_urls = data.get("download_urls", [])
+        count = data.get("video_count", 0)
+
+        st.success(f"Playlist downloaded — {count} video(s)")
+        st.subheader(f"📂 {playlist_title} — {count} video(s)")
+
+        for i, (fname, dl_url) in enumerate(zip(filenames, download_urls)):
+            with st.expander(f"Video {i + 1}: {fname}", expanded=(i == 0)):
+                render_video_card(title=fname, filename=fname, download_url=dl_url, index=i)
+    else:
+        title = data.get("video_title", "")
+        filename = data.get("filename", "video.mp4")
+        dl_url = data.get("download_url", "")
+        platform = data.get("platform", "")
+
+        st.success("Video downloaded successfully")
+        if platform:
+            st.caption(f"Platform: `{platform}`")
+        render_video_card(title=title, filename=filename, download_url=dl_url, index=0)
+
+
 if download_clicked:
     if not url.strip():
         st.error("Please enter a video URL.")
     else:
-        with st.spinner("Downloading… this may take a moment"):
-            try:
-                response = requests.post(
-                    f"{API_BASE_URL}/download",
-                    json={"url": url.strip()},
-                    timeout=600,
-                )
+        log_placeholder = st.empty()
+        logs: list[str] = []
+        result_data = None
+        error_msg = None
 
-                if response.status_code == 200:
-                    result = response.json()
-                    data = result.get("data", {})
-                    video_type = data.get("type")
-
-                    st.success(result.get("message", "Done!"))
-
-                    if video_type == "playlist":
-                        playlist_title = data.get("playlist_title", "Playlist")
-                        filenames = data.get("filenames", [])
-                        download_urls = data.get("download_urls", [])
-                        count = data.get("video_count", 0)
-
-                        st.subheader(f"📂 {playlist_title} — {count} video(s)")
-
-                        for i, (fname, dl_url) in enumerate(zip(filenames, download_urls)):
-                            with st.expander(f"Video {i + 1}: {fname}", expanded=(i == 0)):
-                                render_video_card(
-                                    title=fname,
-                                    filename=fname,
-                                    download_url=dl_url,
-                                    index=i,
-                                )
-
+        try:
+            with st.spinner("Downloading… this may take a moment"), requests.post(
+                f"{API_BASE_URL}/download/stream",
+                json={"url": url.strip()},
+                stream=True,
+                timeout=600,
+            ) as resp:
+                if resp.status_code != 200:
+                    try:
+                        detail = resp.json().get("detail", resp.text)
+                    except Exception:
+                        detail = resp.text
+                    if resp.status_code == 422:
+                        st.error(f"Validation error: {detail}")
                     else:
-                        title = data.get("video_title", "")
-                        filename = data.get("filename", "video.mp4")
-                        dl_url = data.get("download_url", "")
-                        platform = data.get("platform", "")
-
-                        if platform:
-                            st.caption(f"Platform: `{platform}`")
-
-                        render_video_card(
-                            title=title,
-                            filename=filename,
-                            download_url=dl_url,
-                            index=0,
-                        )
-
-                elif response.status_code == 422:
-                    detail = response.json().get("detail", "Invalid URL or request.")
-                    st.error(f"Validation error: {detail}")
+                        st.error(f"Download failed ({resp.status_code}): {detail}")
                 else:
-                    detail = response.json().get("detail", response.text)
-                    st.error(f"Download failed ({response.status_code}): {detail}")
+                    for raw_line in resp.iter_lines():
+                        if not raw_line:
+                            continue
+                        line = raw_line.decode("utf-8") if isinstance(raw_line, bytes) else raw_line
+                        if not line.startswith("data: "):
+                            continue
+                        event = json.loads(line[6:])
 
-            except requests.exceptions.ConnectionError:
-                st.error(
-                    f"Cannot reach the API at `{API_BASE_URL}`. "
-                    "Make sure the backend is running."
-                )
-            except requests.exceptions.Timeout:
-                st.error("Request timed out. The video may be very large — try again.")
-            except Exception as e:
-                st.error(f"Unexpected error: {e}")
+                        if event["type"] == "log":
+                            logs.append(event["message"])
+                            log_placeholder.code("\n".join(logs), language=None)
+                        elif event["type"] == "result":
+                            result_data = event["data"]
+                        elif event["type"] == "error":
+                            error_msg = event["message"]
+
+        except requests.exceptions.ConnectionError:
+            st.error(f"Cannot reach the API at `{API_BASE_URL}`. Make sure the backend is running.")
+        except requests.exceptions.Timeout:
+            st.error("Request timed out. The video may be very large — try again.")
+        except Exception as e:
+            st.error(f"Unexpected error: {e}")
+
+        if error_msg:
+            st.error(f"Download failed: {error_msg}")
+        elif result_data:
+            render_result(result_data)
 
 st.divider()
 with st.expander("⚙️ API Status"):
