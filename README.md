@@ -1,6 +1,26 @@
-# Any Downloader
+# Any Downloader — Free Video Downloader for YouTube, Instagram, TikTok, Twitter/X, Facebook & 1000+ Sites
 
-Download videos from any platform — YouTube, YouTube Shorts, Twitter/X, Facebook, Instagram, TikTok, and [thousands more](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md) supported by yt-dlp.
+**Any Downloader** is a free, open-source video downloader that lets you save videos from YouTube, Instagram, TikTok, Twitter/X, Facebook, Reddit, Twitch, Vimeo, Dailymotion, Pinterest, LinkedIn, and [1000+ other websites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md). It ships a clean web UI (Streamlit) and a REST API — self-host it in minutes with Docker or deploy to the cloud for free on Render.
+
+> Paste any video URL → preview in browser → download as MP4. No ads, no limits, no account required.
+
+## Supported Platforms
+
+| Platform | Videos | Shorts / Reels | Playlists | Live |
+|----------|--------|----------------|-----------|------|
+| **YouTube** | ✅ | ✅ Shorts | ✅ | ✅ |
+| **Instagram** | ✅ | ✅ Reels | ✅ | — |
+| **TikTok** | ✅ | ✅ | ✅ | — |
+| **Twitter / X** | ✅ | — | — | — |
+| **Facebook** | ✅ | ✅ Reels | ✅ | ✅ |
+| **Reddit** | ✅ | — | — | — |
+| **Twitch** | ✅ Clips | — | ✅ VODs | ✅ |
+| **Vimeo** | ✅ | — | ✅ | — |
+| **Dailymotion** | ✅ | — | ✅ | — |
+| **Pinterest** | ✅ | — | — | — |
+| **LinkedIn** | ✅ | — | — | — |
+| **SoundCloud** | ✅ Audio | — | ✅ | — |
+| **1000+ more** | [Full list →](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md) | | | |
 
 ## Services
 
@@ -12,29 +32,26 @@ Download videos from any platform — YouTube, YouTube Shorts, Twitter/X, Facebo
 
 ## ☁️ Render Deployment
 
-Render needs **two separate web services** — one for the API, one for the Streamlit UI. A `render.yaml` is included to configure both automatically.
+A single Docker service runs both the API and Streamlit UI in one container. The included `render.yaml` configures everything automatically.
 
 ### Steps
 
 1. **Push your repo to GitHub** (already done)
 
 2. **Deploy via Render Blueprint**
-   - Go to [render.com/deploy](https://render.com) → **New** → **Blueprint**
-   - Connect your GitHub repo — Render will detect `render.yaml` and create both services
+   - Go to [render.com](https://render.com) → **New** → **Blueprint**
+   - Connect your GitHub repo — Render will detect `render.yaml` and create the service
 
-3. **Set environment variables on the API service**
+3. **Set environment variable on the service**
    - `YT_DLP_COOKIES_CONTENT` — paste the full contents of your `cookies.txt` (for YouTube downloads)
 
-4. **Set environment variables on the UI service**
-   - `API_BASE_URL` — set to your API service URL, e.g. `https://video-downloader-api.onrender.com`
-
-5. Open the **UI service URL** (not the API one) — that's your Streamlit app
+4. Open the **service URL** — Render routes external traffic to the Streamlit UI (port 8501)
 
 > **Note:** Render free tier services spin down after inactivity. The first request may take ~30 seconds to wake up.
 
 ---
 
-
+## 🐳 Docker (Local)
 
 1. **Create a `cookies.txt` file** (required before Docker mounts it)
 ```bash
@@ -75,7 +92,7 @@ The UI communicates with the FastAPI backend internally. Here's the flow:
 ### Prerequisites
 - Python 3.11+
 - FFmpeg (`brew install ffmpeg` / `apt install ffmpeg`)
-- Node.js 20+ (for JS-heavy platforms)
+- Node.js 22+ (for JS-heavy platforms like TikTok, Instagram)
 
 ```bash
 # 1. Create and activate virtualenv
@@ -188,8 +205,45 @@ LOG_FILE=video_downloader.log
 ├── config.py            # Settings
 ├── Dockerfile
 ├── docker-compose.yml   # Spins up API + UI locally
-├── render.yaml          # Render two-service deployment config
+├── render.yaml          # Render single-service deployment config
 ├── requirements.txt
 ├── cookies.txt          # YouTube cookies (gitignored)
 └── downloads/           # Downloaded videos (gitignored)
 ```
+
+---
+
+## ❓ FAQ
+
+**Can I download YouTube videos for free?**
+Yes. Any Downloader is free and open-source. Self-host it locally or deploy to Render's free tier.
+
+**Which video formats are supported?**
+Downloads are saved as MP4 (up to 4K / 2160p where available). Audio-only platforms like SoundCloud are saved as MP3/M4A.
+
+**Can I download YouTube playlists?**
+Yes — paste the playlist URL and every video in the playlist downloads automatically, each with its own preview and save button.
+
+**Why does YouTube download fail without cookies?**
+YouTube's bot-detection blocks anonymous yt-dlp requests. Adding a `cookies.txt` file from a logged-in session bypasses this. See [YouTube Cookies](#-youtube-cookies).
+
+**Can I download private or age-restricted videos?**
+If you are logged into the account that has access and export those cookies, yes.
+
+**Is this an alternative to youtube-dl?**
+Any Downloader is built on [yt-dlp](https://github.com/yt-dlp/yt-dlp), the actively maintained fork of youtube-dl with significantly faster downloads, more sites, and better format selection.
+
+**Can I use this as a video downloader API?**
+Yes — the FastAPI backend exposes a `/download` endpoint you can call from any language. See [API Usage](#-api-usage).
+
+**What is the maximum file size?**
+500 MB by default. Change `YT_DLP_MAX_FILESIZE` in your `.env` to raise or remove the limit.
+
+**Does it work on Windows / Mac / Linux?**
+Yes — run it natively with Python or via Docker on any OS.
+
+---
+
+## 🏷️ Keywords
+
+`video downloader` · `youtube downloader` · `instagram video downloader` · `tiktok downloader` · `twitter video downloader` · `facebook video downloader` · `reddit video downloader` · `twitch clip downloader` · `vimeo downloader` · `yt-dlp web ui` · `yt-dlp gui` · `self-hosted video downloader` · `open source video downloader` · `download youtube playlist` · `python video downloader` · `fastapi yt-dlp`
